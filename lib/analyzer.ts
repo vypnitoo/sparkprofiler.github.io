@@ -383,17 +383,66 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
   // Extract ID from URL
   const match = url.match(/spark\.lucko\.me\/([a-zA-Z0-9]+)/);
   if (!match) {
-    throw new Error('Invalid Spark profiler URL');
+    throw new Error('Invalid Spark profiler URL. Format: https://spark.lucko.me/XXXXX');
   }
 
   const id = match[1];
   const rawUrl = `https://spark.lucko.me/${id}?raw=1`;
 
-  const response = await fetch(rawUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch profile: ${response.statusText}`);
-  }
+  // Use CORS proxy for production builds (static sites can't use server-side APIs)
+  const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
 
-  const data = await response.json();
-  return data;
+  if (isProduction) {
+    // Use CORS proxy in production
+    try {
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+      const response = await fetch(proxyUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw new Error(
+        'Could not fetch Spark profiler data. The URL might be invalid or the service is down. ' +
+        'Make sure the URL is correct: https://spark.lucko.me/XXXXX'
+      );
+    }
+  } else {
+    // Try direct fetch in development (usually works on localhost)
+    try {
+      const response = await fetch(rawUrl, {
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      // Fallback to proxy even in dev
+      try {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+        const response = await fetch(proxyUrl);
+
+        if (!response.ok) {
+          throw new Error(`Proxy fetch failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (proxyError) {
+        throw new Error(
+          'Cannot fetch Spark data. Check the URL and try again.'
+        );
+      }
+    }
+  }
 }
