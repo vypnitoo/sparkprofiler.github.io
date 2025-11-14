@@ -12,6 +12,13 @@ export class SparkAnalyzer {
 
   constructor(data: SparkProfilerData) {
     this.data = data;
+    // Debug what we're receiving
+    console.log('Full Spark Data:', data);
+    console.log('platformStatistics:', data.platformStatistics);
+    console.log('TPS:', data.platformStatistics?.tps);
+    console.log('MSPT:', data.platformStatistics?.mspt);
+    console.log('Memory:', data.platformStatistics?.memory);
+    console.log('Player Count:', data.platformStatistics?.playerCount);
   }
 
   analyze(): AnalysisResult {
