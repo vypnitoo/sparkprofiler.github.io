@@ -12,13 +12,6 @@ export class SparkAnalyzer {
 
   constructor(data: SparkProfilerData) {
     this.data = data;
-    // Debug what we're receiving
-    console.log('Full Spark Data:', data);
-    console.log('platformStatistics:', data.platformStatistics);
-    console.log('TPS:', data.platformStatistics?.tps);
-    console.log('MSPT:', data.platformStatistics?.mspt);
-    console.log('Memory:', data.platformStatistics?.memory);
-    console.log('Player Count:', data.platformStatistics?.playerCount);
   }
 
   analyze(): AnalysisResult {
@@ -395,7 +388,9 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
   }
 
   const id = match[1];
-  const rawUrl = `https://spark.lucko.me/${id}?raw=1`;
+  // IMPORTANT: Add &full=true to get platformStatistics (TPS, MSPT, memory, etc.)
+  // Without it, we only get metadata!
+  const rawUrl = `https://spark.lucko.me/${id}?raw=1&full=true`;
 
   // Use CORS proxy for production builds (static sites can't use server-side APIs)
   const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
