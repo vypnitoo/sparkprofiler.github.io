@@ -4,6 +4,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // basePath only needed if repo name is NOT username.github.io
+  // Current setup: vypnitoo/sparkprofiler.github.io
   basePath: process.env.NODE_ENV === 'production' ? '/sparkprofiler.github.io' : '',
 }
 
