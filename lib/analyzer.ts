@@ -66,13 +66,12 @@ export class SparkAnalyzer {
     }
 
     // Analyze Memory
-    const memoryUsagePercent = (
-      (this.data.metadata.systemStatistics.memory.heap.used /
-        this.data.metadata.systemStatistics.memory.heap.max) *
-      100
-    );
+    const heap = this.data.metadata.systemStatistics?.memory?.heap;
+    const memoryUsagePercent = heap?.used && heap?.max
+      ? (heap.used / heap.max) * 100
+      : 0;
 
-    if (memoryUsagePercent > 90) {
+    if (memoryUsagePercent > 90 && heap) {
       issues.push({
         severity: 'critical',
         category: 'Memory',
@@ -87,12 +86,12 @@ export class SparkAnalyzer {
         description: 'Allocate more RAM to prevent crashes',
         expectedImprovement: 'Prevent crashes and reduce GC pauses by 50%+',
         steps: [
-          `Increase -Xmx from ${(this.data.metadata.systemStatistics.memory.heap.max / 1024 / 1024 / 1024).toFixed(1)}GB to at least ${Math.ceil((this.data.metadata.systemStatistics.memory.heap.max / 1024 / 1024 / 1024) * 1.5)}GB`,
+          `Increase -Xmx from ${((heap?.max || 0) / 1024 / 1024 / 1024).toFixed(1)}GB to at least ${Math.ceil(((heap?.max || 0) / 1024 / 1024 / 1024) * 1.5)}GB`,
           'Use Aikar\'s flags for optimal GC',
           'Monitor memory usage after changes',
         ],
       });
-    } else if (memoryUsagePercent > 80) {
+    } else if (memoryUsagePercent > 80 && heap) {
       issues.push({
         severity: 'warning',
         category: 'Memory',
@@ -138,7 +137,7 @@ export class SparkAnalyzer {
     }
 
     // Analyze CPU
-    const cpuUsage = this.data.metadata.systemStatistics.cpu.processUsage.last1m;
+    const cpuUsage = this.data.metadata.systemStatistics?.cpu?.processUsage?.last1m || 0;
     if (cpuUsage > 90) {
       issues.push({
         severity: 'critical',
@@ -181,15 +180,16 @@ export class SparkAnalyzer {
     const tpsStatus = tps >= 19.5 ? 'good' : tps >= 18 ? 'warning' : 'critical';
 
     // MSPT Analysis
-    const mspt = stats.mspt?.last1m.mean ?? 0;
+    const mspt = stats.mspt?.last1m?.mean ?? 0;
     const msptStatus = mspt <= 40 ? 'good' : mspt <= 50 ? 'warning' : 'critical';
 
     // CPU Analysis
-    const cpu = stats.cpu.processUsage.last1m;
+    const cpu = stats.cpu?.processUsage?.last1m ?? 0;
     const cpuStatus = cpu <= 70 ? 'good' : cpu <= 85 ? 'warning' : 'critical';
 
     // Memory Analysis
-    const memoryUsagePercent = (stats.memory.heap.used / stats.memory.heap.max) * 100;
+    const heap = stats.memory?.heap;
+    const memoryUsagePercent = heap?.used && heap?.max ? (heap.used / heap.max) * 100 : 0;
     const memoryStatus = memoryUsagePercent <= 70 ? 'good' : memoryUsagePercent <= 85 ? 'warning' : 'critical';
 
     // Entity Analysis

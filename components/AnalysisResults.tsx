@@ -134,7 +134,7 @@ export default function AnalysisResults({ result, profileData }: Props) {
             label: 'Memory',
             value: formatPercentage(result.metrics.memory.usage),
             status: result.metrics.memory.status,
-            detail: formatBytes(stats.memory.heap.used),
+            detail: formatBytes(stats.memory?.heap?.used || 0),
           },
           {
             icon: Users,
@@ -325,9 +325,9 @@ export default function AnalysisResults({ result, profileData }: Props) {
           {[
             { label: 'Platform', value: `${profileData.metadata.platform.name} ${profileData.metadata.platform.version}` },
             { label: 'Minecraft', value: profileData.metadata.platform.minecraftVersion || 'N/A' },
-            { label: 'Java', value: `${stats.java?.vendor} ${stats.java?.version}` || 'N/A' },
-            { label: 'CPU Threads', value: stats.cpu.threads },
-            { label: 'Total Memory', value: formatBytes(stats.memory.heap.max) },
+            { label: 'Java', value: stats.java ? `${stats.java.vendor} ${stats.java.version}` : 'N/A' },
+            { label: 'CPU Threads', value: stats.cpu?.threads || 'N/A' },
+            { label: 'Total Memory', value: formatBytes(stats.memory?.heap?.max || 0) },
             { label: 'Player Count', value: stats.playerCount || 'N/A' },
           ].map((info, i) => (
             <div key={i} className="glass p-4 rounded-lg">
