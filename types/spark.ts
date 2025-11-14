@@ -117,6 +117,27 @@ export interface Thread {
 
 export interface PlatformStatistics {
   world?: WorldStatistics;
+  tps?: {
+    last1m: number;
+    last5m: number;
+    last15m: number;
+  };
+  mspt?: {
+    last1m: MSPTStatistics;
+    last5m: MSPTStatistics;
+  };
+  memory?: {
+    heap: MemoryPool;
+    nonHeap?: MemoryPool;
+    pools?: {
+      [key: string]: MemoryPool;
+    };
+  };
+  gc?: {
+    [key: string]: GCStatistics;
+  };
+  playerCount?: number;
+  uptime?: number;
 }
 
 export interface WorldStatistics {

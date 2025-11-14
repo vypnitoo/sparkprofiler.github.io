@@ -173,22 +173,23 @@ export class SparkAnalyzer {
   }
 
   private analyzeMetrics(): AnalyzedMetrics {
-    const stats = this.data.metadata.systemStatistics;
+    // TPS, MSPT, Memory are in platformStatistics, not metadata.systemStatistics
+    const platformStats = this.data.platformStatistics;
 
     // TPS Analysis
-    const tps = stats.tps?.last1m ?? 20;
+    const tps = platformStats?.tps?.last1m ?? 20;
     const tpsStatus = tps >= 19.5 ? 'good' : tps >= 18 ? 'warning' : 'critical';
 
     // MSPT Analysis
-    const mspt = stats.mspt?.last1m?.mean ?? 0;
+    const mspt = platformStats?.mspt?.last1m?.mean ?? 0;
     const msptStatus = mspt <= 40 ? 'good' : mspt <= 50 ? 'warning' : 'critical';
 
-    // CPU Analysis
-    const cpu = stats.cpu?.processUsage?.last1m ?? 0;
+    // CPU Analysis (from metadata.systemStatistics)
+    const cpu = this.data.metadata?.systemStatistics?.cpu?.processUsage?.last1m ?? 0;
     const cpuStatus = cpu <= 70 ? 'good' : cpu <= 85 ? 'warning' : 'critical';
 
-    // Memory Analysis
-    const heap = stats.memory?.heap;
+    // Memory Analysis (from platformStatistics)
+    const heap = platformStats?.memory?.heap;
     const memoryUsagePercent = heap?.used && heap?.max ? (heap.used / heap.max) * 100 : 0;
     const memoryStatus = memoryUsagePercent <= 70 ? 'good' : memoryUsagePercent <= 85 ? 'warning' : 'critical';
 
