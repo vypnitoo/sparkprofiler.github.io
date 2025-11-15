@@ -392,6 +392,8 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
   // Without it, we only get metadata!
   const rawUrl = `https://spark.lucko.me/${id}?raw=1&full=true`;
 
+  console.log('🔍 Fetching Spark data from:', rawUrl);
+
   // Use CORS proxy for production builds (static sites can't use server-side APIs)
   const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
 
@@ -399,6 +401,7 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
     // Use CORS proxy in production
     try {
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+      console.log('📡 Using CORS proxy:', proxyUrl);
       const response = await fetch(proxyUrl);
 
       if (!response.ok) {
@@ -406,8 +409,11 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
       }
 
       const data = await response.json();
+      console.log('✅ Data received:', data);
+      console.log('📊 platformStatistics:', data.platformStatistics);
       return data;
     } catch (error) {
+      console.error('❌ Fetch error:', error);
       throw new Error(
         'Could not fetch Spark profiler data. The URL might be invalid or the service is down. ' +
         'Make sure the URL is correct: https://spark.lucko.me/XXXXX'
@@ -415,6 +421,7 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
     }
   } else {
     // Try direct fetch in development (usually works on localhost)
+    console.log('🏠 Running on localhost, trying direct fetch...');
     try {
       const response = await fetch(rawUrl, {
         mode: 'cors',
@@ -428,11 +435,15 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
       }
 
       const data = await response.json();
+      console.log('✅ Data received (direct):', data);
+      console.log('📊 platformStatistics:', data.platformStatistics);
       return data;
     } catch (error) {
+      console.warn('⚠️ Direct fetch failed, trying proxy...', error);
       // Fallback to proxy even in dev
       try {
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+        console.log('📡 Using CORS proxy fallback:', proxyUrl);
         const response = await fetch(proxyUrl);
 
         if (!response.ok) {
@@ -440,8 +451,11 @@ export async function fetchSparkProfile(url: string): Promise<SparkProfilerData>
         }
 
         const data = await response.json();
+        console.log('✅ Data received (proxy):', data);
+        console.log('📊 platformStatistics:', data.platformStatistics);
         return data;
       } catch (proxyError) {
+        console.error('❌ Proxy also failed:', proxyError);
         throw new Error(
           'Cannot fetch Spark data. Check the URL and try again.'
         );
